@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    tty: true
+    init: true
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - rabbitmq_network
+
+  # cpp_publisher:
+  #   build: ./cpp_publisher
+  #   tty: true
+  #   init: true
+  #   depends_on:
+  #     - rabbitmq
+  #   networks:
+  #     - rabbitmq_network
+  #   volumes:
+  #     - ./cpp_publisher:/usr/src/cpp_publisher
+  #   environment:
+  #     - RABBITMQ_HOST=rabbitmq
+
+  python_worker:
+    build: ./python_worker
+    tty: true
+    init: true
+    depends_on:
+      - rabbitmq
+    networks:
+      - rabbitmq_network
+    volumes:
+      - ./python_worker:/usr/src/python_worker
+
+  python_web:
+    build: ./python_web
+    tty: true
+    init: true
+    ports:
+      - "8002:8000"
+    depends_on:
+      - rabbitmq
+    networks:
+      - rabbitmq_network
+    volumes:
+      - ./python_web:/usr/src/python_web
+
+  go_generator:
+    build: ./go_generator
+    tty: true
+    init: true
+    depends_on:
+      - rabbitmq
+    networks:
+      - rabbitmq_network
+    volumes:
+      - ./go_generator:/usr/src/go_generator
+
+networks:
+  rabbitmq_network:
+    driver: bridge
