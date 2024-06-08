@@ -6,9 +6,16 @@ import uvicorn
 import threading
 import time
 
+# AMQP
+EXCHANGE_NAME = 'value1_exchange'  
+IS_DURABLE = True  
+KEY_OF_DISPLAY_VALUE_IN_JSON = "value1"
+
+# HTML
+HTML_FILE_NAME = "index.html"
+
 app = FastAPI()
 
-# Connect to RabbitMQ
 def connect_to_rabbitmq():
     max_retries = 5
     for i in range(max_retries):
@@ -24,18 +31,13 @@ def connect_to_rabbitmq():
 connection = connect_to_rabbitmq()
 channel = connection.channel()
 
-# Declare the exchange
-output_exchange_name = 'value1_exchange'
-channel.exchange_declare(exchange=output_exchange_name, exchange_type='fanout', durable=True)
+channel.exchange_declare(exchange=EXCHANGE_NAME, exchange_type='fanout', durable=IS_DURABLE)
 
-# Declare a temporary queue
 result = channel.queue_declare(queue='', exclusive=True)
 queue_name = result.method.queue
 
-# Bind the queue to the exchange
-channel.queue_bind(exchange=output_exchange_name, queue=queue_name)
+channel.queue_bind(exchange=EXCHANGE_NAME, queue=queue_name)
 
-# Variable to store the latest value
 latest_value = "No value"
 
 def consume_messages():
@@ -44,71 +46,20 @@ def consume_messages():
     def callback(ch, method, properties, body):
         global latest_value
         value_data = json.loads(body.decode())
-        latest_value = value_data.get('value1', "No value")
-        print(f"Received value1: {latest_value}")
+        latest_value = value_data[0]
+        print(f"Received {KEY_OF_DISPLAY_VALUE_IN_JSON}: {value_data}")
 
     channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
     channel.start_consuming()
 
-# Start consuming messages in a separate thread
 threading.Thread(target=consume_messages, daemon=True).start()
 
-# HTML template
-html = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Direction Compass</title>
-    <style>
-        #compass {
-            width: 300px;
-            height: 300px;
-            border: 2px solid black;
-            border-radius: 50%;
-            position: relative;
-            margin: 50px auto;
-        }
-
-        #arrow {
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-bottom: 50px solid red;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform-origin: bottom center;
-            transform: translate(-50%, -100%);
-        }
-    </style>
-    <script>
-        function updateDirection() {
-            fetch('/value')
-                .then(response => response.json())
-                .then(data => {
-                    const direction = data.value * 10;
-                    const arrow = document.getElementById('arrow');
-                    arrow.style.transform = `translate(-50%, -100%) rotate(${direction}deg)`;
-                });
-        }
-        setInterval(updateDirection, 2000); // Update every second
-    </script>
-</head>
-<body>
-    <div id="compass">
-        <div id="arrow"></div>
-    </div>
-</body>
-</html>
-"""
-
-# Endpoint to serve the HTML page
 @app.get("/", response_class=HTMLResponse)
 async def get():
+    with open(HTML_FILE_NAME, "r") as file:
+        html = file.read()
     return HTMLResponse(content=html, status_code=200)
 
-# Endpoint to get the latest value
 @app.get("/value")
 async def get_value():
     global latest_value

@@ -14,29 +14,27 @@ services:
     networks:
       - rabbitmq_network
 
-  # cpp_publisher:
-  #   build: ./cpp_publisher
-  #   tty: true
-  #   init: true
-  #   depends_on:
-  #     - rabbitmq
-  #   networks:
-  #     - rabbitmq_network
-  #   volumes:
-  #     - ./cpp_publisher:/usr/src/cpp_publisher
-  #   environment:
-  #     - RABBITMQ_HOST=rabbitmq
-
-  python_worker:
-    build: ./python_worker
+  cpp_worker:
+    build: ./cpp_worker
     tty: true
     init: true
     depends_on:
       - rabbitmq
     networks:
       - rabbitmq_network
-    volumes:
-      - ./python_worker:/usr/src/python_worker
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+
+  # python_worker:
+  #   build: ./python_worker
+  #   tty: true
+  #   init: true
+  #   depends_on:
+  #     - rabbitmq
+  #   networks:
+  #     - rabbitmq_network
+  #   # volumes:
+  #   #   - ./python_worker:/usr/src/python_worker
 
   python_web:
     build: ./python_web
@@ -48,8 +46,8 @@ services:
       - rabbitmq
     networks:
       - rabbitmq_network
-    volumes:
-      - ./python_web:/usr/src/python_web
+    # volumes:
+    #   - ./python_web:/usr/src/python_web
 
   go_generator:
     build: ./go_generator

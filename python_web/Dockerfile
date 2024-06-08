@@ -1,10 +1,9 @@
 FROM python:3.9-slim
 
-# pikaをインストール
 RUN pip install pika fastapi uvicorn
 
-# Pythonのソースコードをコピー
-COPY web.py /usr/src/web.py
+# COPY . /usr/src/web.py
+# copy all files in cd
+COPY . /usr/src
 
-# 実行コマンド
-CMD ["sh", "-c", "sleep 5 && python /usr/src/web.py"]
+CMD ["sh", "-c", "sleep 5 && cd /usr/src && python web.py"]

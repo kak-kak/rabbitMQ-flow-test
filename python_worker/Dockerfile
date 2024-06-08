@@ -1,10 +1,7 @@
 FROM python:3.9-slim
 
-# pikaをインストール
 RUN pip install pika
 
-# Pythonのソースコードをコピー
-COPY subscriber.py /usr/src/subscriber.py
+COPY . /usr/src
 
-# 実行コマンド
-CMD ["sh", "-c", "sleep 5 && python /usr/src/subscriber.py"]
+CMD ["sh", "-c", "sleep 5 && python /usr/src/worker.py"]

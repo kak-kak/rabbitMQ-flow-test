@@ -2,24 +2,23 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Direction Compass</title>
+    <title>Direction Indicator</title>
     <style>
         #compass {
-            width: 300px;
-            height: 300px;
+            width: 80vh;
+            height: 80vh;
             border: 2px solid black;
             border-radius: 50%;
             position: relative;
-            margin: 50px auto;
+            margin: 10vh auto;
         }
 
         #arrow {
             width: 0;
             height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-bottom: 50px solid red;
+            border-left: 2vh solid transparent;
+            border-right: 2vh solid transparent;
+            border-bottom: 40vh solid red;
             position: absolute;
             top: 50%;
             left: 50%;
@@ -32,7 +31,17 @@
     <div id="compass">
         <div id="arrow"></div>
     </div>
-
-    <script src="script.js"></script>
+    <script>
+        function updateDirection() {
+            fetch('/value')
+                .then(response => response.json())
+                .then(data => {
+                    const direction = data.value;
+                    const arrow = document.getElementById('arrow');
+                    arrow.style.transform = `translate(-50%, -100%) rotate(${direction}deg)`;
+                });
+        }
+    setInterval(updateDirection, 200);
+    </script>
 </body>
 </html>
