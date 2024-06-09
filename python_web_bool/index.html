@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>YES/NO Gauge Meter</title>
+    <style>
+        #meter-container {
+            width: 80vh;
+            height: 40vh;
+            position: relative;
+            margin: 10vh auto;
+            text-align: center;
+        }
+
+        #meter {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="meter-container">
+        <img id="meter" src="meter_no.png" alt="Meter">
+    </div>
+
+    <script>
+        async function updateMeter() {
+            try {
+                // バックエンドに問い合わせ（例として、URLを'/api/meter'とします）
+                const response = await fetch('/api/meter');
+                const result = await response.json();
+
+                // 結果に基づいて画像を切り替え
+                const meterImage = document.getElementById('meter');
+                if (result.value === 'yes') {
+                    meterImage.src = 'meter_yes.png';
+                } else {
+                    meterImage.src = 'meter_no.png';
+                }
+            } catch (error) {
+                console.error('Error fetching meter data:', error);
+            }
+        }
+
+        // 1秒ごとにupdateMeter関数を実行
+        setInterval(updateMeter, 1000);
+    </script>
+</body>
+</html>
