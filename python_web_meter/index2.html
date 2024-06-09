@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Direction Indicator</title>
+    <style>
+        #compass {
+            width: 80vh;
+            height: 80vh;
+            border-radius: 50%;
+            position: relative;
+            margin: 10vh auto;
+            background: url('clock.png') no-repeat center center; /* Add your compass image URL here */
+            background-size: cover; /* Ensure the image covers the entire div */
+        }
+
+        #arrow {
+            width: 0;
+            height: 0;
+            border-left: 2vh solid transparent;
+            border-right: 2vh solid transparent;
+            border-bottom: 40vh solid transparent; /* Remove the red color */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%);
+            transition: transform 0.5s ease-in-out; /* Add transition for smooth rotation */
+        }
+
+        #line {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 1vh; /* Adjust the width of the line */
+            height: 40vh; /* Adjust the height of the line */
+            background-color: black; /* Line color */
+            transform: translateX(-50%);
+            z-index: 1; /* Ensure the line is at the front */
+        }
+
+        #arrow img {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translate(-50%, 0);
+            width: 10vh; /* Adjust the size as needed */
+            height: auto;
+            z-index: 2; /* Ensure the image is above the line */
+            transition: filter 0.5s ease-in-out; /* Add transition for smooth color change */
+        }
+
+        #valueDisplay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4vh; /* Adjust font size as needed */
+            color: white; /* Text color */
+            z-index: 3; /* Ensure the text is at the front */
+        }
+    </style>
+</head>
+<body>
+    <div id="compass">
+        <div id="arrow">
+            <div id="line"></div>
+            <img src="sun.png" alt="Arrow Tip"> <!-- Add your arrow tip image URL here -->
+        </div>
+        <div id="valueDisplay"></div>
+    </div>
+    <script>
+        let direction = 0; // Initialize the direction
+
+        function updateDirection(newDirection) {
+            const arrow = document.getElementById('arrow');
+            arrow.style.transform = `translate(-50%, -100%) rotate(${newDirection}deg)`;
+        }
+
+        function updateColor(value) {
+            const arrowImage = document.querySelector('#arrow img');
+            // Assuming value ranges from 0 to 100, where 0 is fully red and 100 is fully blue
+            const hue = (value * 3) - 150; // Adjust this formula as needed to fit the value range
+            arrowImage.style.filter = `hue-rotate(${hue}deg)`;
+        }
+
+        function updateValueDisplay(value) {
+            const valueDisplay = document.getElementById('valueDisplay');
+            valueDisplay.textContent = value;
+        }
+
+        function fetchAndUpdate() {
+            // For local debugging, generate random values for direction and value
+            const newDirection = Math.floor(Math.random() * 360); // Random direction between 0 and 359
+            const value = Math.floor(Math.random() * 100); // Random value between 0 and 99
+            updateDirection(newDirection);
+            updateColor(value);
+            updateValueDisplay(value);
+        }
+
+        setInterval(fetchAndUpdate, 1000); // Update every 1 second
+    </script>
+</body>
+</html>
