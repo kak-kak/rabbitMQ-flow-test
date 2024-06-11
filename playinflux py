@@ -1,0 +1,47 @@
+import pika
+from influxdb import InfluxDBClient
+import json
+import time
+
+# RabbitMQの接続設定
+rabbitmq_host = 'rabbitmq'
+rabbitmq_queue = 'my_queue'
+
+# InfluxDBの接続設定
+influxdb_host = 'influxdb'
+influxdb_port = 8086
+influxdb_user = 'root'
+influxdb_password = 'root'
+influxdb_dbname = 'mydb'
+
+# InfluxDBクライアントの初期化
+client = InfluxDBClient(host=influxdb_host, port=influxdb_port, username=influxdb_user, password=influxdb_password)
+client.switch_database(influxdb_dbname)
+
+# RabbitMQパブリッシャの初期化
+connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
+channel = connection.channel()
+channel.queue_declare(queue=rabbitmq_queue)
+
+# InfluxDBからデータを取得
+results = client.query('SELECT * FROM rabbitmq_data ORDER BY time ASC')
+points = list(results.get_points())
+
+# データを再生してRabbitMQに送信
+previous_time = None
+for point in points:
+    data = point['value']
+    timestamp = point['time']
+    data_dict = json.loads(data)
+    
+    # データの再生間隔を調整
+    if previous_time:
+        sleep_time = (timestamp - previous_time) / 1000.0  # ミリ秒を秒に変換
+        time.sleep(sleep_time)
+    
+    channel.basic_publish(exchange='', routing_key=rabbitmq_queue, body=json.dumps(data_dict))
+    print(f"Data published to RabbitMQ: {data_dict}")
+
+    previous_time = timestamp
+
+connection.close()
